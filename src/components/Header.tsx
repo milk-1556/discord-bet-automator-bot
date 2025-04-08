@@ -11,10 +11,10 @@ export default function Header() {
   const isActive = (path: string) => location.pathname === path;
   
   return (
-    <header className="flex items-center justify-between p-4 border-b border-border">
+    <header className="flex items-center justify-between p-4 border-b border-border bg-background">
       <div className="flex items-center gap-2">
         <Bot size={24} className="text-primary" />
-        <h1 className="text-xl font-bold">Discord Bet Automator</h1>
+        <h1 className="text-xl font-bold text-foreground">Discord Bet Automator</h1>
       </div>
       
       <div className="flex gap-2">
@@ -22,7 +22,12 @@ export default function Header() {
           variant={isActive("/") ? "default" : "ghost"}
           size="sm"
           onClick={() => navigate("/")}
-          className={cn("gap-2", isActive("/") && "bg-primary")}
+          className={cn(
+            "gap-2", 
+            isActive("/") 
+              ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
         >
           <LayoutDashboard size={16} />
           Dashboard
@@ -32,7 +37,12 @@ export default function Header() {
           variant={isActive("/logs") ? "default" : "ghost"}
           size="sm"
           onClick={() => navigate("/logs")}
-          className={cn("gap-2", isActive("/logs") && "bg-primary")}
+          className={cn(
+            "gap-2", 
+            isActive("/logs") 
+              ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
         >
           <PauseOctagon size={16} />
           Bet History
@@ -42,7 +52,12 @@ export default function Header() {
           variant={isActive("/settings") ? "default" : "ghost"}
           size="sm"
           onClick={() => navigate("/settings")}
-          className={cn("gap-2", isActive("/settings") && "bg-primary")}
+          className={cn(
+            "gap-2", 
+            isActive("/settings") 
+              ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
         >
           <Settings size={16} />
           Settings

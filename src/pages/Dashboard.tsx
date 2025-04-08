@@ -163,7 +163,7 @@ export default function Dashboard() {
   };
   
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className="container mx-auto py-8 space-y-8 bg-background text-foreground">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatusCard
           title="Discord Connection"
@@ -217,14 +217,19 @@ export default function Dashboard() {
             <BetHistoryTable bets={betHistory} />
             
             <div className="mt-4 flex justify-end gap-2">
-              <Button size="sm" variant="outline" onClick={() => simulateBetMessage()}>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => simulateBetMessage()}
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
                 Simulate Bet Message
               </Button>
               <Button 
                 size="sm" 
                 variant="outline" 
                 onClick={checkBackendConnection}
-                className="bg-slate-100"
+                className="bg-accent text-accent-foreground hover:bg-accent/80"
               >
                 Check Backend
               </Button>

@@ -12,7 +12,8 @@ const DEFAULT_CONFIG: AppConfig = {
   platformCredentials: {},
   autoStart: false,
   monitoringEnabled: true,
-  bettingEnabled: false
+  bettingEnabled: false,
+  backendUrl: "http://localhost:5000" // Default backend URL
 };
 
 // Key for local storage

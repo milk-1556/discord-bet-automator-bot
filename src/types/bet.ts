@@ -46,4 +46,5 @@ export interface AppConfig {
   autoStart: boolean;
   monitoringEnabled: boolean;
   bettingEnabled: boolean;
+  backendUrl?: string;  // New property for backend service URL
 }

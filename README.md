@@ -1,73 +1,61 @@
-# Welcome to your Lovable project
 
-## Project info
+# Discord Bet Automator
 
-**URL**: https://lovable.dev/projects/3769c32f-1331-4eb0-bb70-80e1ad6dcc92
+This application automates monitoring Discord channels for betting messages and places bets on various sportsbooks automatically.
 
-## How can I edit this code?
+## Architecture
 
-There are several ways of editing your application.
+The system consists of two parts:
 
-**Use Lovable**
+1. **Frontend (React)**: User interface for configuration, status monitoring, and control
+2. **Backend (Python)**: Automation service using Selenium for Discord monitoring and bet placement
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3769c32f-1331-4eb0-bb70-80e1ad6dcc92) and start prompting.
+## Frontend Setup
 
-Changes made via Lovable will be committed automatically to this repo.
+1. Clone this repository
+2. Install dependencies with `npm install`
+3. Start the development server with `npm run dev`
 
-**Use your preferred IDE**
+## Backend Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+The backend service needs to be run separately on your local machine. Follow these steps:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Ensure you have Python 3.8+ installed
+2. Create a virtual environment: `python -m venv venv`
+3. Activate the virtual environment:
+   - Windows: `venv\Scripts\activate`
+   - macOS/Linux: `source venv/bin/activate`
+4. Install required packages: `pip install -r requirements.txt`
+5. Set up your `.env` file with your credentials (see `.env.example`)
+6. Run the backend service: `python backend_server.py`
 
-Follow these steps:
+## Required Python Packages
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+The backend requires the following packages:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+selenium
+python-dotenv
+flask
+flask-cors
 ```
 
-**Edit a file directly in GitHub**
+## Usage
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Start both the frontend and backend
+2. Configure your Discord credentials and betting platform accounts in the Settings page
+3. Click "Start Monitoring" on the Dashboard to begin automation
+4. View betting activity and history in the Bet History page
 
-**Use GitHub Codespaces**
+## Important Notes
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- This application is for educational purposes only
+- Using automation scripts may violate the Terms of Service of Discord and betting platforms
+- Always ensure you're complying with local laws and regulations regarding online betting
+- Use at your own risk
 
-## What technologies are used for this project?
+## Development
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/3769c32f-1331-4eb0-bb70-80e1ad6dcc92) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- Frontend: React with TypeScript, Tailwind CSS
+- Backend: Python with Flask, Selenium
+- Storage: Browser LocalStorage for frontend, .env file for backend

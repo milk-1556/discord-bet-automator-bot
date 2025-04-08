@@ -1,0 +1,136 @@
+
+# This is an example of how to integrate the Python script with a Flask API
+# You would need to run this on your local machine
+
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import threading
+import time
+import os
+import json
+from dotenv import load_dotenv
+
+# Import the automation script components
+from automation import init_browser, login_discord, monitor_discord_channel, place_bet_draftkings
+
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
+# Global variables
+config = {}
+monitoring_thread = None
+is_monitoring = False
+monitor_lock = threading.Lock()
+
+# Load initial config
+@app.before_first_request
+def initialize():
+    global config
+    load_dotenv()
+    
+    # Default config
+    config = {
+        "discordEmail": os.getenv("DISCORD_EMAIL", ""),
+        "discordPassword": os.getenv("DISCORD_PASSWORD", ""),
+        "targetServer": os.getenv("TARGET_SERVER", ""),
+        "targetChannel": os.getenv("TARGET_CHANNEL", ""),
+        "targetUser": os.getenv("TARGET_USER", ""),
+        "unitSize": float(os.getenv("BASE_UNIT", "10")),
+        "platformCredentials": {}
+    }
+
+# Route for checking if the backend is alive
+@app.route('/api/status', methods=['GET'])
+def status():
+    return jsonify({
+        "status": "online",
+        "isMonitoring": is_monitoring
+    })
+
+# Route for updating configuration
+@app.route('/api/config', methods=['POST'])
+def update_config():
+    global config
+    new_config = request.json
+    config.update(new_config)
+    
+    # Save to .env file if needed
+    # This is a simplified example - in practice, you'd want to handle this more securely
+    with open('.env', 'w') as f:
+        f.write(f"DISCORD_EMAIL={config['discordEmail']}\n")
+        f.write(f"DISCORD_PASSWORD={config['discordPassword']}\n")
+        f.write(f"TARGET_SERVER={config['targetServer']}\n")
+        f.write(f"TARGET_CHANNEL={config['targetChannel']}\n")
+        f.write(f"TARGET_USER={config['targetUser']}\n")
+        f.write(f"BASE_UNIT={config['unitSize']}\n")
+    
+    return jsonify({"success": True})
+
+# Function that runs in a separate thread to monitor Discord
+def monitoring_worker():
+    global is_monitoring
+    
+    try:
+        browser = init_browser()
+        if login_discord(browser):
+            with monitor_lock:
+                if not is_monitoring:
+                    browser.quit()
+                    return
+                
+            # Start monitoring
+            monitor_discord_channel(browser)
+        else:
+            with monitor_lock:
+                is_monitoring = False
+    except Exception as e:
+        print(f"Error in monitoring thread: {e}")
+        with monitor_lock:
+            is_monitoring = False
+
+# Route to start monitoring
+@app.route('/api/monitor/start', methods=['POST'])
+def start_monitoring():
+    global monitoring_thread, is_monitoring
+    
+    with monitor_lock:
+        if is_monitoring:
+            return jsonify({"success": True, "message": "Already monitoring"})
+        
+        is_monitoring = True
+        monitoring_thread = threading.Thread(target=monitoring_worker)
+        monitoring_thread.daemon = True
+        monitoring_thread.start()
+    
+    return jsonify({"success": True})
+
+# Route to stop monitoring
+@app.route('/api/monitor/stop', methods=['POST'])
+def stop_monitoring():
+    global is_monitoring
+    
+    with monitor_lock:
+        is_monitoring = False
+    
+    return jsonify({"success": True})
+
+# Route to test betting credentials
+@app.route('/api/test/betting/<platform>', methods=['POST'])
+def test_betting(platform):
+    platform_code = {
+        "DraftKings": "dk",
+        "FanDuel": "fd",
+        "BetMGM": "betmgm",
+        "Caesars": "caesars"
+    }.get(platform)
+    
+    if not platform_code:
+        return jsonify({"success": False, "message": "Invalid platform"})
+    
+    # Mock test - in reality, you'd use Selenium to try logging in
+    time.sleep(2)  # Simulate login attempt
+    
+    return jsonify({"success": True})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)

@@ -10,45 +10,82 @@ import { v4 as uuidv4 } from "uuid";
 import { BetHistoryItem } from "@/types/bet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { backendService } from "@/services/BackendService";
 
 export default function Dashboard() {
   const { toast } = useToast();
   const [isMonitoring, setIsMonitoring] = useState<boolean>(false);
   const [discordStatus, setDiscordStatus] = useState<"online" | "offline" | "warning" | "error">("offline");
+  const [backendStatus, setBackendStatus] = useState<"online" | "offline" | "warning" | "error">("offline");
   const [betHistory, setBetHistory] = useState<BetHistoryItem[]>([]);
   const [config, setConfig] = useState(loadConfig());
   
   useEffect(() => {
     // Load bet history on mount
     setBetHistory(loadBetHistory().slice(0, 5)); // Show only last 5 bets
+    
+    // Check backend connection
+    checkBackendConnection();
+    
+    // Check if auto-start is enabled
+    if (config.autoStart) {
+      handleStartMonitoring();
+    }
   }, []);
   
-  // This is a mock function - in a real implementation this would connect to Discord
-  const toggleMonitoring = () => {
-    if (isMonitoring) {
+  // Check if backend service is available
+  const checkBackendConnection = async () => {
+    const isConnected = await backendService.checkConnection();
+    setBackendStatus(isConnected ? "online" : "error");
+  };
+  
+  // Start monitoring with backend service
+  const handleStartMonitoring = async () => {
+    setDiscordStatus("warning");
+    toast({
+      title: "Connecting to Discord...",
+      description: "Attempting to establish connection."
+    });
+    
+    const success = await backendService.startMonitoring(config);
+    
+    if (success) {
+      setIsMonitoring(true);
+      setDiscordStatus("online");
+      toast({
+        title: "Monitoring active",
+        description: "Successfully connected to Discord. Watching for bet messages."
+      });
+    } else {
+      setDiscordStatus("error");
+      toast({
+        title: "Connection failed",
+        description: "Could not connect to Discord. Check your credentials.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Stop monitoring with backend service
+  const handleStopMonitoring = async () => {
+    const success = await backendService.stopMonitoring();
+    
+    if (success) {
       setIsMonitoring(false);
       setDiscordStatus("offline");
       toast({
         title: "Monitoring stopped",
         description: "Discord monitoring has been paused."
       });
+    }
+  };
+  
+  // Toggle monitoring
+  const toggleMonitoring = () => {
+    if (isMonitoring) {
+      handleStopMonitoring();
     } else {
-      // Simulate connecting to Discord
-      setDiscordStatus("warning");
-      toast({
-        title: "Connecting to Discord...",
-        description: "Attempting to establish connection."
-      });
-      
-      // Simulate successful connection after 2 seconds
-      setTimeout(() => {
-        setIsMonitoring(true);
-        setDiscordStatus("online");
-        toast({
-          title: "Monitoring active",
-          description: "Successfully connected to Discord. Watching for bet messages."
-        });
-      }, 2000);
+      handleStartMonitoring();
     }
   };
   
@@ -155,9 +192,11 @@ export default function Dashboard() {
         />
         
         <StatusCard
-          title="Bot Activity"
-          status={isMonitoring ? "online" : "offline"}
-          description={`Unit size: $${config.unitSize.toFixed(2)}`}
+          title="Backend Service"
+          status={backendStatus}
+          description={backendStatus === "online" 
+            ? `Connected to automation service` 
+            : "Backend automation service not available"}
           icon={
             <div className="flex justify-center">
               <Bot size={48} className="text-primary" />
@@ -181,6 +220,14 @@ export default function Dashboard() {
               <Button size="sm" variant="outline" onClick={() => simulateBetMessage()}>
                 Simulate Bet Message
               </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={checkBackendConnection}
+                className="bg-slate-100"
+              >
+                Check Backend
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -192,6 +239,7 @@ export default function Dashboard() {
           onClick={toggleMonitoring}
           variant={isMonitoring ? "destructive" : "default"}
           className="w-full max-w-md"
+          disabled={backendStatus !== "online"}
         >
           {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
         </Button>

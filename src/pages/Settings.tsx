@@ -10,12 +10,15 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { AppConfig, BettingPlatform } from "@/types/bet";
 import { loadConfig, saveConfig } from "@/utils/storage";
-import { Eye, EyeOff, Save } from "lucide-react";
+import { Eye, EyeOff, Save, RotateCw } from "lucide-react";
+import CredentialTester from "@/components/CredentialTester";
+import { backendService } from "@/services/BackendService";
 
 export default function Settings() {
   const [config, setConfig] = useState<AppConfig>(loadConfig());
   const [showPasswords, setShowPasswords] = useState(false);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const [updatingBackend, setUpdatingBackend] = useState(false);
   const { toast } = useToast();
   
   // Initialize local form state from config
@@ -49,13 +52,36 @@ export default function Settings() {
     }));
   };
   
-  const saveSettings = () => {
+  const saveSettings = async () => {
+    // Save locally
     saveConfig(config);
     setHasPendingChanges(false);
-    toast({
-      title: "Settings saved",
-      description: "Your settings have been saved successfully."
-    });
+    
+    // Update backend configuration
+    setUpdatingBackend(true);
+    try {
+      const success = await backendService.updateBackendConfig(config);
+      
+      if (success) {
+        toast({
+          title: "Settings saved",
+          description: "Your settings have been saved successfully and sent to backend."
+        });
+      } else {
+        toast({
+          title: "Settings saved locally",
+          description: "Settings saved to browser, but failed to update backend."
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Backend update failed",
+        description: "Settings saved locally, but failed to update backend configuration.",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdatingBackend(false);
+    }
   };
   
   const platformSettings = (platform: BettingPlatform) => {
@@ -63,10 +89,15 @@ export default function Settings() {
     
     return (
       <div className="space-y-4">
-        <CardTitle>{platform}</CardTitle>
-        <CardDescription>
-          Enter your {platform} account credentials for automated betting.
-        </CardDescription>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle>{platform}</CardTitle>
+            <CardDescription>
+              Enter your {platform} account credentials for automated betting.
+            </CardDescription>
+          </div>
+          <CredentialTester platform={platform} />
+        </div>
         
         <div className="grid gap-4">
           <div className="grid gap-2">
@@ -112,6 +143,7 @@ export default function Settings() {
           <TabsTrigger value="discord">Discord</TabsTrigger>
           <TabsTrigger value="betting">Betting Platforms</TabsTrigger>
           <TabsTrigger value="general">General Settings</TabsTrigger>
+          <TabsTrigger value="backend">Backend</TabsTrigger>
         </TabsList>
         
         <TabsContent value="discord">
@@ -200,10 +232,19 @@ export default function Settings() {
               </Button>
               <Button
                 onClick={saveSettings}
-                disabled={!hasPendingChanges}
+                disabled={!hasPendingChanges || updatingBackend}
               >
-                <Save size={16} className="mr-2" />
-                Save Changes
+                {updatingBackend ? (
+                  <>
+                    <RotateCw size={16} className="mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} className="mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>
@@ -239,10 +280,19 @@ export default function Settings() {
               </Button>
               <Button
                 onClick={saveSettings}
-                disabled={!hasPendingChanges}
+                disabled={!hasPendingChanges || updatingBackend}
               >
-                <Save size={16} className="mr-2" />
-                Save Changes
+                {updatingBackend ? (
+                  <>
+                    <RotateCw size={16} className="mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} className="mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>
@@ -329,10 +379,104 @@ export default function Settings() {
               </Button>
               <Button
                 onClick={saveSettings}
-                disabled={!hasPendingChanges}
+                disabled={!hasPendingChanges || updatingBackend}
               >
-                <Save size={16} className="mr-2" />
-                Save Changes
+                {updatingBackend ? (
+                  <>
+                    <RotateCw size={16} className="mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} className="mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="backend">
+          <Card>
+            <CardHeader>
+              <CardTitle>Backend Configuration</CardTitle>
+              <CardDescription>
+                Configure settings for the automation backend service.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-2">
+                <Label htmlFor="backend-url">Backend URL</Label>
+                <Input
+                  id="backend-url"
+                  type="text"
+                  placeholder="http://localhost:5000"
+                  value={config.backendUrl || ""}
+                  onChange={(e) => updateConfig({ backendUrl: e.target.value })}
+                />
+                <p className="text-sm text-muted-foreground">
+                  The URL where your Python automation backend is running. This is typically a local server.
+                </p>
+              </div>
+              
+              <Separator />
+              
+              <div className="p-4 bg-slate-50 rounded-md border border-slate-200">
+                <h3 className="font-semibold mb-2">Technical Note</h3>
+                <p className="text-sm text-muted-foreground">
+                  The backend service should be a server running the Python Selenium script. This server should expose
+                  APIs for starting/stopping monitoring and handling configuration. The recommended setup is to:
+                </p>
+                <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
+                  <li>Run the Python script using Flask or FastAPI</li>
+                  <li>Expose REST endpoints for controlling the automation</li>
+                  <li>Run the backend on the same machine as this web app</li>
+                </ul>
+              </div>
+              
+              <div className="flex gap-4 justify-center mt-4">
+                <Button 
+                  onClick={async () => {
+                    const isConnected = await backendService.checkConnection();
+                    toast({
+                      title: isConnected ? "Backend connected" : "Backend not available",
+                      description: isConnected 
+                        ? "Successfully connected to the backend service." 
+                        : "Could not connect to the backend service. Make sure it's running.",
+                      variant: isConnected ? "default" : "destructive"
+                    });
+                  }}
+                >
+                  Test Connection
+                </Button>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setConfig(loadConfig());
+                  setHasPendingChanges(false);
+                }}
+              >
+                Reset
+              </Button>
+              <Button
+                onClick={saveSettings}
+                disabled={!hasPendingChanges || updatingBackend}
+              >
+                {updatingBackend ? (
+                  <>
+                    <RotateCw size={16} className="mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} className="mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>

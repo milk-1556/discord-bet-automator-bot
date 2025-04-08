@@ -62,6 +62,22 @@ Example:
 
 This would place a 0.5 unit bet (50% of your unit size) on DraftKings for an NFL game using a free bet.
 
+## Enhanced Bonus Detection
+
+The system intelligently detects and applies bonuses from bet messages, even when not explicitly defined in the format:
+
+- **Explicit syntax**: Using `bonus:code` or `use:code` in the bet message
+- **Percentage-based**: Detects phrases like "20% MLB" and applies a 20% boost for MLB
+- **Promo keywords**: Recognizes phrases like "free bet", "odds boost", "no sweat HR"
+- **Special promos**: Handles specific promos like "no sweat home run" or "parlay insurance" 
+
+### Examples of automatic bonus detection:
+
+- `@book-fd 1u MLB This looks good with 20%` → Will apply a 20% boost
+- `@book-dk 2u NBA trying with free bet` → Will use a free bet
+- `@book-mgm 1.5u NFL with no sweat TD` → Will apply a no sweat touchdown promo
+- `@book-czr 1u This looks great for odds boost` → Will apply an odds boost
+
 ## Bonus Selection System
 
 The application automatically matches the requested bonus in the bet message with available bonuses on the platform:
@@ -70,6 +86,8 @@ The application automatically matches the requested bonus in the bet message wit
 2. If no exact match is found, the system looks for the closest match:
    - For percentage bonuses, it finds the closest percentage (e.g., 25%, 50%, 100%)
    - For keyword bonuses (free bet, odds boost), it finds a similar type
+   - For league-specific bonuses, it prioritizes matching the league
+   - For special promos (no sweat, insurance), it finds the closest match
 3. If no matching bonus is found, it defaults to no bonus or the first available bonus
 
 You can test bonuses in the Settings page by clicking "Add Bonus" next to each platform's test button.

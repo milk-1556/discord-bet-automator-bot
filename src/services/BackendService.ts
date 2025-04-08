@@ -160,8 +160,35 @@ class BackendService {
       return requestedBonus;
     }
     
-    // Look for keyword matches
+    // Pre-process the requested bonus for better matching
     const lowerRequested = requestedBonus.toLowerCase();
+    
+    // Special handling for "no sweat" promos
+    if (lowerRequested.includes('no_sweat')) {
+      const noSweatType = lowerRequested.split('no_sweat_')[1];
+      // Look for any no_sweat bonus or one matching the specific type
+      const noSweatBonus = availableBonuses.find(b => 
+        b.includes('no_sweat') && (noSweatType ? b.includes(noSweatType) : true)
+      );
+      if (noSweatBonus) return noSweatBonus;
+    }
+    
+    // Check for league-specific bonuses
+    const leagueMatch = lowerRequested.match(/(\d+)%_([a-z]+)/);
+    if (leagueMatch) {
+      const requestedPercent = parseInt(leagueMatch[1]);
+      const requestedLeague = leagueMatch[2];
+      
+      // First look for exact league + percentage match
+      const exactLeagueMatch = availableBonuses.find(b => 
+        b.includes(`${requestedPercent}%`) && b.includes(requestedLeague)
+      );
+      if (exactLeagueMatch) return exactLeagueMatch;
+      
+      // Then look for any boost with the same league
+      const leagueBonus = availableBonuses.find(b => b.includes(requestedLeague));
+      if (leagueBonus) return leagueBonus;
+    }
     
     // Check for free bet
     if (lowerRequested.includes('free')) {
@@ -192,15 +219,19 @@ class BackendService {
       }
     }
     
-    // Check for other keyword matches
-    if (lowerRequested.includes('boost')) {
-      const boost = availableBonuses.find(b => b.includes('boost'));
-      if (boost) return boost;
-    }
+    // Check for other keyword matches (more specific to generic)
+    const bonusKeywords = [
+      { search: 'odds_boost', keywords: ['boost', 'odds'] },
+      { search: 'deposit_match', keywords: ['match', 'deposit'] },
+      { search: 'parlay', keywords: ['parlay', 'sgp', 'same_game'] },
+      { search: 'insurance', keywords: ['insurance', 'protection'] }
+    ];
     
-    if (lowerRequested.includes('match')) {
-      const match = availableBonuses.find(b => b.includes('match'));
-      if (match) return match;
+    for (const { search, keywords } of bonusKeywords) {
+      if (keywords.some(keyword => lowerRequested.includes(keyword))) {
+        const match = availableBonuses.find(b => b.includes(search));
+        if (match) return match;
+      }
     }
     
     // Default to the first available bonus if we can't find a match

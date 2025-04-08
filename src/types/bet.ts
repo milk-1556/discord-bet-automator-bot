@@ -9,7 +9,7 @@ export interface Bet {
   timestamp: Date;
   status: BetStatus;
   dollarAmount: number;
-  bonus?: string; // New field for bonus selection
+  bonus?: string; // Bonus code or type (e.g., "free_bet", "odds_boost")
 }
 
 export type BettingPlatform = 
@@ -42,10 +42,11 @@ export interface AppConfig {
     [key in BettingPlatform]?: {
       username: string;
       password: string;
+      availableBonuses?: string[]; // NEW: Array of available bonuses for this platform
     }
   };
   autoStart: boolean;
   monitoringEnabled: boolean;
   bettingEnabled: boolean;
-  backendUrl?: string;  // Property for backend service URL
+  backendUrl?: string;
 }

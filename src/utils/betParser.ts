@@ -1,8 +1,13 @@
 
 import { Bet, BettingPlatform } from "@/types/bet";
 
-// Updated regular expression to match betting patterns with optional bonus
-const BET_REGEX = /@book-([a-z]+)\s+([\d.]+)u(?:\s+(\d+)%)?(?:\s+([a-z]+))?(?:\s+bonus:([a-z0-9_\-+]+))?/i;
+// Updated regular expression to match betting patterns with more bonus formats
+const BET_REGEX = /@book-([a-z]+)\s+([\d.]+)u(?:\s+(\d+)%)?(?:\s+([a-z]+))?(?:\s+(?:bonus|use):([a-z0-9_\-+% ]+))?/i;
+
+// Bonus keywords that might appear in messages
+const FREE_BET_KEYWORDS = ['free', 'free bet', 'freebie'];
+const ODDS_BOOST_KEYWORDS = ['boost', 'boosted', 'odds boost'];
+const DEPOSIT_MATCH_KEYWORDS = ['match', 'deposit match', 'deposit bonus'];
 
 export function parseBetFromMessage(
   message: string,
@@ -16,7 +21,33 @@ export function parseBetFromMessage(
   const units = parseFloat(match[2]);
   const percentage = match[3] ? parseInt(match[3]) : undefined;
   const league = match[4] ? match[4].toUpperCase() : undefined;
-  const bonus = match[5] ? match[5].trim() : undefined;
+  
+  // Enhanced bonus extraction
+  let bonus = undefined;
+  
+  // First check for explicit bonus in the regex
+  if (match[5]) {
+    bonus = match[5].trim().toLowerCase();
+  } else {
+    // Check for bonus keywords in the full message
+    const messageLower = message.toLowerCase();
+    
+    if (FREE_BET_KEYWORDS.some(keyword => messageLower.includes(keyword))) {
+      bonus = 'free_bet';
+    } else if (ODDS_BOOST_KEYWORDS.some(keyword => messageLower.includes(keyword))) {
+      bonus = 'odds_boost';
+    } else if (DEPOSIT_MATCH_KEYWORDS.some(keyword => messageLower.includes(keyword))) {
+      bonus = 'deposit_match';
+    }
+    
+    // Check for percentage in the message if not already extracted from the regex
+    if (!percentage) {
+      const percentMatch = messageLower.match(/(\d+)%\s+(?:boost|bonus)/i);
+      if (percentMatch) {
+        bonus = `${percentMatch[1]}%_boost`;
+      }
+    }
+  }
   
   // Extract potential URLs from the message
   const urlMatch = message.match(/https?:\/\/[^\s]+/);

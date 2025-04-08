@@ -52,15 +52,27 @@ flask-cors
 The application parses bet messages in the following format:
 
 ```
-@book-<platform> <units>u [percentage%] [league] [bonus:<code>]
+@book-<platform> <units>u [percentage%] [league] [bonus:<code>] or [use:<code>]
 ```
 
 Example:
 ```
-@book-dk 0.5u 50% nfl bonus:new_user_promo
+@book-dk 0.5u 50% nfl bonus:free_bet
 ```
 
-This would place a 0.5 unit bet (50% of your unit size) on DraftKings for an NFL game using the "new_user_promo" bonus code.
+This would place a 0.5 unit bet (50% of your unit size) on DraftKings for an NFL game using a free bet.
+
+## Bonus Selection System
+
+The application automatically matches the requested bonus in the bet message with available bonuses on the platform:
+
+1. If an exact match is found, that bonus is used
+2. If no exact match is found, the system looks for the closest match:
+   - For percentage bonuses, it finds the closest percentage (e.g., 25%, 50%, 100%)
+   - For keyword bonuses (free bet, odds boost), it finds a similar type
+3. If no matching bonus is found, it defaults to no bonus or the first available bonus
+
+You can test bonuses in the Settings page by clicking "Add Bonus" next to each platform's test button.
 
 ## Important Notes
 

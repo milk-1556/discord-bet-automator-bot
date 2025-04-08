@@ -129,12 +129,14 @@ export default function BetHistoryTable({ bets, className }: BetHistoryTableProp
 }
 
 function StatusBadge({ status }: { status: BetStatus }) {
-  let variant: "default" | "destructive" | "outline" | "secondary" | "success" = "default";
+  // Fix: Changed "success" to "default" for placed status to match valid badge variants
+  let variant: "default" | "destructive" | "outline" | "secondary" = "default";
   let label = status;
   
   switch (status) {
     case "placed":
-      variant = "success";
+      // Changed from "success" to "default" to fix the type error
+      variant = "default";
       break;
     case "failed":
       variant = "destructive";

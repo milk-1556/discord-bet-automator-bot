@@ -9,6 +9,7 @@ export interface Bet {
   timestamp: Date;
   status: BetStatus;
   dollarAmount: number;
+  bonus?: string; // New field for bonus selection
 }
 
 export type BettingPlatform = 
@@ -46,5 +47,5 @@ export interface AppConfig {
   autoStart: boolean;
   monitoringEnabled: boolean;
   bettingEnabled: boolean;
-  backendUrl?: string;  // New property for backend service URL
+  backendUrl?: string;  // Property for backend service URL
 }

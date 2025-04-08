@@ -6,6 +6,8 @@ import { BettingPlatform } from "@/types/bet";
 import { backendService } from "@/services/BackendService";
 import { loadConfig } from "@/utils/storage";
 import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface CredentialTesterProps {
   platform: BettingPlatform;
@@ -13,6 +15,8 @@ interface CredentialTesterProps {
 
 export default function CredentialTester({ platform }: CredentialTesterProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [showBonusInput, setShowBonusInput] = useState(false);
+  const [bonusCode, setBonusCode] = useState("");
   const { toast } = useToast();
 
   const testCredentials = async () => {
@@ -20,12 +24,12 @@ export default function CredentialTester({ platform }: CredentialTesterProps) {
     const config = loadConfig();
     
     try {
-      const success = await backendService.testBetPlacement(platform, config);
+      const success = await backendService.testBetPlacement(platform, config, bonusCode || undefined);
       
       if (success) {
         toast({
           title: "Credentials valid",
-          description: `${platform} credentials were verified successfully.`,
+          description: `${platform} credentials were verified successfully${bonusCode ? ` with bonus: ${bonusCode}` : ''}.`,
         });
       } else {
         toast({
@@ -46,20 +50,44 @@ export default function CredentialTester({ platform }: CredentialTesterProps) {
   };
 
   return (
-    <Button 
-      size="sm" 
-      variant="outline" 
-      onClick={testCredentials}
-      disabled={isLoading}
-    >
-      {isLoading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Testing...
-        </>
-      ) : (
-        "Test Credentials"
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Button 
+          size="sm" 
+          variant="outline" 
+          onClick={testCredentials}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Testing...
+            </>
+          ) : (
+            "Test Credentials"
+          )}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setShowBonusInput(!showBonusInput)}
+        >
+          {showBonusInput ? "Hide Bonus" : "Add Bonus"}
+        </Button>
+      </div>
+      
+      {showBonusInput && (
+        <div className="space-y-1">
+          <Label htmlFor={`${platform.toLowerCase()}-bonus`} className="text-xs">Bonus Code</Label>
+          <Input
+            id={`${platform.toLowerCase()}-bonus`}
+            placeholder="Optional bonus code"
+            value={bonusCode}
+            onChange={(e) => setBonusCode(e.target.value)}
+            className="h-8 text-sm"
+          />
+        </div>
       )}
-    </Button>
+    </div>
   );
 }

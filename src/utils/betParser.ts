@@ -1,8 +1,8 @@
 
 import { Bet, BettingPlatform } from "@/types/bet";
 
-// Regular expression to match betting patterns
-const BET_REGEX = /@book-([a-z]+)\s+([\d.]+)u(?:\s+(\d+)%)?(?:\s+([a-z]+))?/i;
+// Updated regular expression to match betting patterns with optional bonus
+const BET_REGEX = /@book-([a-z]+)\s+([\d.]+)u(?:\s+(\d+)%)?(?:\s+([a-z]+))?(?:\s+bonus:([a-z0-9_\-+]+))?/i;
 
 export function parseBetFromMessage(
   message: string,
@@ -16,6 +16,7 @@ export function parseBetFromMessage(
   const units = parseFloat(match[2]);
   const percentage = match[3] ? parseInt(match[3]) : undefined;
   const league = match[4] ? match[4].toUpperCase() : undefined;
+  const bonus = match[5] ? match[5].trim() : undefined;
   
   // Extract potential URLs from the message
   const urlMatch = message.match(/https?:\/\/[^\s]+/);
@@ -36,7 +37,8 @@ export function parseBetFromMessage(
     rawMessage: message,
     timestamp: new Date(),
     status: 'pending',
-    dollarAmount
+    dollarAmount,
+    bonus
   };
 }
 

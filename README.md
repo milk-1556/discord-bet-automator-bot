@@ -47,6 +47,21 @@ flask-cors
 3. Click "Start Monitoring" on the Dashboard to begin automation
 4. View betting activity and history in the Bet History page
 
+## Bet Message Format
+
+The application parses bet messages in the following format:
+
+```
+@book-<platform> <units>u [percentage%] [league] [bonus:<code>]
+```
+
+Example:
+```
+@book-dk 0.5u 50% nfl bonus:new_user_promo
+```
+
+This would place a 0.5 unit bet (50% of your unit size) on DraftKings for an NFL game using the "new_user_promo" bonus code.
+
 ## Important Notes
 
 - This application is for educational purposes only

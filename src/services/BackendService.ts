@@ -107,9 +107,10 @@ class BackendService {
   /**
    * Run a test bet placement (useful for testing credentials)
    */
-  async testBetPlacement(platform: string, config: AppConfig): Promise<boolean> {
+  async testBetPlacement(platform: string, config: AppConfig, bonus?: string): Promise<boolean> {
     try {
       console.log(`Testing ${platform} bet placement with config:`, config);
+      console.log(`Using bonus: ${bonus || 'None'}`);
       
       // Simulate a backend test request
       await new Promise(resolve => setTimeout(resolve, 3000));
